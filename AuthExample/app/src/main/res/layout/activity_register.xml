@@ -1,49 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
     android:padding="14dp"
-    tools:context=".MainActivity">
+    android:gravity="center"
+    tools:context=".RegisterActivity">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Login"
+        android:text="Register"
         android:textSize="30sp"
-        android:textStyle="bold" />
-
+        android:textStyle="bold"
+        android:gravity="center"/>
     <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/email"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:hint="email" />
-
+        android:hint="email"
+        android:layout_marginTop="15dp"/>
     <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/pass"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
         android:hint="password"
-        android:inputType="textPassword" />
-
+        android:inputType="textPassword"
+        android:layout_marginTop="15dp"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Register"
         android:layout_marginTop="15dp"
-        android:onClick="login"
-        android:text="login" />
+        android:onClick="register"/>
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:onClick="register"
-        android:text="register" />
 
 </LinearLayout>
