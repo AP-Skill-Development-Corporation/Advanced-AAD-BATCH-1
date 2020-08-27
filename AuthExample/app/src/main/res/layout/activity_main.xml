@@ -61,6 +61,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="phoneauth"
+        android:layout_marginTop="15dp"
         android:text="phone auth"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="gsign"
+        android:text="Google Auth"
+        android:layout_marginTop="15dp"/>
 
 </LinearLayout>
