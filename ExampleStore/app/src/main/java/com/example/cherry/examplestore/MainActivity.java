@@ -9,11 +9,14 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,12 +25,13 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
+
 
 import java.io.IOException;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
-    ImageView iv;
+    ImageView iv,iv1;
     StorageReference reference;
     DatabaseReference dreference;
     Uri uri;
@@ -36,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         iv = findViewById(R.id.iv);
-        reference = FirebaseStorage.getInstance().getReference();
+        iv1 = findViewById(R.id.iv1);
+        reference = FirebaseStorage.getInstance().getReference().child("images/pic.jpg");
+
         dreference = FirebaseDatabase.getInstance().getReference("Storage");
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,9 +60,16 @@ public class MainActivity extends AppCompatActivity {
         dreference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot:snapshot.getChildren()){
-                    String link  = dataSnapshot.getValue(String.class);
-                    Picasso.with(MainActivity.this).load(link).into(iv);
+                for(DataSnapshot dataSnapshot:snapshot.getChildren()){
+                    Upload upload = dataSnapshot.getValue(Upload.class);
+                    Log.i("Apssdc",upload.getUrl());
+                    Glide.with(MainActivity.this)
+                            .load(upload.getUrl())
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_foreground)
+                            .override(300,300)
+                            .centerCrop()
+                            .into(iv1);
 
                 }
             }
@@ -78,25 +91,21 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     public void upload(View view) {
-        final StorageReference ref = reference.child("images/pic.jpg");
-        ref.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(MainActivity.this, "uploaded",
-                        Toast.LENGTH_SHORT).show();
-                //To make the image view empty again
-                String link = ref.getDownloadUrl().toString();
-                String id = dreference.push().getKey();
-                dreference.child(id).setValue(link);
-                Toast.makeText(MainActivity.this, ""+link,
-                        Toast.LENGTH_SHORT).show();
-                iv.setImageBitmap(null);
-            }
-        });
+       reference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+           @Override
+           public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+               reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                   @Override
+                   public void onSuccess(Uri uri) {
+                       String url = uri.toString();
+                       Upload upload = new Upload(url);
+                       dreference.child(dreference.push().getKey()).setValue(upload);
+                   }
+               });
+           }
+       });
     }
 }
