@@ -3,7 +3,10 @@ package com.example.cherry.examplestore;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -29,22 +32,29 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-    ImageView iv,iv1;
-    StorageReference reference;
+    ImageView iv;
+    RecyclerView rv;
+    StorageReference ref;
     DatabaseReference dreference;
+    ProgressDialog progressDialog;
     Uri uri;
+    ArrayList<Upload> list;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         iv = findViewById(R.id.iv);
-        iv1 = findViewById(R.id.iv1);
-        reference = FirebaseStorage.getInstance()
-                .getReference()
-                .child("images/"+ UUID.randomUUID().toString());
+        rv = findViewById(R.id.rv);
+        list = new ArrayList<>();
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("uploading.....");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        ref = FirebaseStorage.getInstance()
+                .getReference();
 
         dreference = FirebaseDatabase.getInstance().getReference("Storage");
         iv.setOnClickListener(new View.OnClickListener() {
@@ -52,9 +62,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent i = new Intent();
                 i.setType("image/*");
-                //for  pdf
-                //i.setType("application/pdf");
-                i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+                //for  pdf : i.setType("application/pdf");
+                //to select multiple files : i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 //This code is to select an image from your device
                 startActivityForResult(Intent
@@ -64,17 +73,13 @@ public class MainActivity extends AppCompatActivity {
         dreference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                list.clear();
                 for(DataSnapshot dataSnapshot:snapshot.getChildren()){
                     Upload upload = dataSnapshot.getValue(Upload.class);
-                    Log.i("Apssdc",upload.getUrl());
-                    Glide.with(MainActivity.this)
-                            .load(upload.getUrl())
-                            .placeholder(R.drawable.ic_launcher_background)
-                            .error(R.drawable.ic_launcher_foreground)
-                            .override(300,300)
-                            .centerCrop()
-                            .into(iv1);
-
+                    list.add(upload);
+                    MyAdapter adapter = new MyAdapter(list,MainActivity.this);
+                    rv.setAdapter(adapter);
+                    rv.setLayoutManager(new LinearLayoutManager(MainActivity.this));
                 }
             }
 
@@ -98,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void upload(View view) {
+
+        progressDialog.show();
+        final StorageReference reference = ref.child("images/"+ UUID.randomUUID().toString());
        reference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
            @Override
            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -107,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                        String url = uri.toString();
                        Upload upload = new Upload(url);
                        dreference.child(dreference.push().getKey()).setValue(upload);
+                       progressDialog.dismiss();
                    }
                });
            }
